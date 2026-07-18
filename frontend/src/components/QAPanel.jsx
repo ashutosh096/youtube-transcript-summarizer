@@ -1,6 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Send, MessageSquare, Trash2, HelpCircle } from 'lucide-react';
 
+const SUGGESTIONS = [
+  "Summarize the key takeaways",
+  "What is the main topic?",
+  "List the core arguments",
+  "Summarize the conclusion"
+];
+
 export default function QAPanel({ messages, isLoading, onSendMessage, onClearChat }) {
   const [inputValue, setInputValue] = useState('');
   const chatBodyRef = useRef(null);
@@ -66,6 +73,26 @@ export default function QAPanel({ messages, isLoading, onSendMessage, onClearCha
             )}
           </div>
         ))}
+
+        {/* Dynamic Quick Question Chips */}
+        {messages.length === 1 && !isLoading && (
+          <div className="chat-suggestions-container">
+            <span className="suggestions-title">Live Presentation Actions:</span>
+            <div className="suggestions-grid">
+              {SUGGESTIONS.map((sug, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="suggestion-chip"
+                  onClick={() => onSendMessage(sug)}
+                  disabled={isLoading}
+                >
+                  {sug}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Loading Indicator Bubble */}
         {isLoading && (

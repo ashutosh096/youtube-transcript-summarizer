@@ -11,6 +11,28 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
   ? 'http://localhost:8000/api'
   : '/api';
 
+const extractKeywords = (text) => {
+  if (!text) return [];
+  const stopWords = new Set([
+    'the', 'and', 'a', 'of', 'to', 'in', 'is', 'that', 'it', 'you', 'i', 'this', 'on', 'with', 'for', 'as', 'are', 'was', 'but', 'be', 'or', 'at', 'an', 'your', 'my', 'have', 'from', 'we', 'they', 'he', 'she', 'so', 'just', 'like', 'about', 'how', 'what', 'if', 'can', 'out', 'up', 'all', 'there', 'one', 'would', 'their', 'them', 'who', 'get', 'go', 'me', 'him', 'her', 'know', 'think', 'see', 'make', 'some', 'than', 'then', 'now', 'its', 'also', 'has', 'will', 'very', 'us', 'our', 'more', 'into', 'other', 'here', 'when', 'time', 'been', 'were', 'use', 'do', 'does', 'did', 'actually', 'mean', 'want', 'going', 'would', 'could', 'should', 'people', 'really', 'something', 'right', 'well', 'much', 'many', 'good'
+  ]);
+  const words = text.toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .split(/\s+/);
+  
+  const freq = {};
+  words.forEach(w => {
+    if (w.length > 4 && !stopWords.has(w)) {
+      freq[w] = (freq[w] || 0) + 1;
+    }
+  });
+  
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(entry => entry[0]);
+};
+
 export default function App() {
   const [url, setUrl] = useState('');
   const [videoData, setVideoData] = useState(null);
@@ -30,6 +52,20 @@ export default function App() {
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const [loadingStep, setLoadingStep] = useState(1);
   const [error, setError] = useState('');
+
+  // Sourced Sync States
+  const [currentTime, setCurrentTime] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [keywords, setKeywords] = useState([]);
+
+  // Extract top keywords on video load
+  useEffect(() => {
+    if (videoData && videoData.text) {
+      setKeywords(extractKeywords(videoData.text));
+    } else {
+      setKeywords([]);
+    }
+  }, [videoData]);
 
   // Load API keys from local storage on mount
   useEffect(() => {
@@ -66,6 +102,8 @@ export default function App() {
     setChatMessages([
       { role: 'assistant', content: "Hi! Ask me anything about the video, and I'll find it in the transcript." }
     ]);
+    setSearchQuery('');
+    setCurrentTime(0);
     setIsLoadingVideo(true);
     setLoadingStep(1);
 
@@ -196,7 +234,7 @@ export default function App() {
         <div className="nav-inner">
           <div className="logo-group" onClick={() => window.location.reload()}>
             <div className="logo-box">
-              <Play size={16} fill="#060913" color="#060913" style={{ marginLeft: '2px' }} />
+              <Play size={16} fill="#ffffff" color="#ffffff" style={{ marginLeft: '2px' }} />
             </div>
             <span className="logo-text">TranscriptAI</span>
           </div>
@@ -299,6 +337,12 @@ export default function App() {
                 channel={videoData.channel}
                 wordCount={videoData.word_count}
                 readTime={videoData.read_time}
+                onTimeUpdate={setCurrentTime}
+                keywords={keywords}
+                onKeywordClick={(kw) => {
+                  setSearchQuery(kw);
+                  setActiveTab('transcript');
+                }}
               />
               
               <QAPanel
@@ -345,6 +389,9 @@ export default function App() {
                     <TranscriptView
                       segments={videoData.segments}
                       onSeek={handleSeek}
+                      searchQuery={searchQuery}
+                      onSearchQueryChange={setSearchQuery}
+                      currentTime={currentTime}
                     />
                   )}
                 </div>

@@ -136,6 +136,21 @@ Open **http://localhost:5173** in your browser. The backend runs on **http://loc
 
 > _Paste a YouTube URL → Get a structured AI summary, interactive transcript, and a full Q&A chatbot — all in one clean interface._
 
+### 1. Modern Bright Landing Page
+![Landing Page](assets/screenshot_1.png)
+
+### 2. Video Analysis & AI Summary Dashboard
+![Summary Dashboard](assets/screenshot_2.png)
+
+### 3. Interactive Synchronized Transcript
+![Interactive Transcript](assets/screenshot_3.png)
+
+### 4. Context-Aware Q&A Chatbot
+![Q&A Chatbot](assets/screenshot_4.png)
+
+### 5. API Settings Configuration
+![API Settings](assets/screenshot_5.png)
+
 ---
 
 ## 🔑 API Keys

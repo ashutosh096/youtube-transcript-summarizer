@@ -1,10 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Tv, FileText, Clock } from 'lucide-react';
 
-export default function YoutubePlayer({ videoId, seekToTime, title, channel, wordCount, readTime }) {
+export default function YoutubePlayer({ videoId, seekToTime, title, channel, wordCount, readTime, onTimeUpdate, keywords, onKeywordClick }) {
   const playerRef = useRef(null);
   const containerId = 'yt-player-element';
   const [apiReady, setApiReady] = useState(false);
+  const timeUpdateInterval = useRef(null);
+
+  const startTimeTracking = () => {
+    if (timeUpdateInterval.current) clearInterval(timeUpdateInterval.current);
+    timeUpdateInterval.current = setInterval(() => {
+      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+        const time = playerRef.current.getCurrentTime();
+        if (typeof onTimeUpdate === 'function') {
+          onTimeUpdate(time);
+        }
+      }
+    }, 250);
+  };
+
+  const stopTimeTracking = () => {
+    if (timeUpdateInterval.current) {
+      clearInterval(timeUpdateInterval.current);
+      timeUpdateInterval.current = null;
+    }
+  };
 
   useEffect(() => {
     // 1. Load YouTube Iframe API if not loaded
@@ -21,6 +41,10 @@ export default function YoutubePlayer({ videoId, seekToTime, title, channel, wor
     } else {
       setApiReady(true);
     }
+
+    return () => {
+      stopTimeTracking();
+    };
   }, []);
 
   useEffect(() => {
@@ -44,6 +68,15 @@ export default function YoutubePlayer({ videoId, seekToTime, title, channel, wor
           playsinline: 1,
           rel: 0,
         },
+        events: {
+          onStateChange: (event) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              startTimeTracking();
+            } else {
+              stopTimeTracking();
+            }
+          }
+        }
       });
     }
 
@@ -86,6 +119,23 @@ export default function YoutubePlayer({ videoId, seekToTime, title, channel, wor
             <span>{readTime ? `~${readTime} min read` : '— min read'}</span>
           </div>
         </div>
+        {keywords && keywords.length > 0 && (
+          <div className="video-keywords-row">
+            <span className="keywords-label">Concepts:</span>
+            <div className="keywords-list">
+              {keywords.map((kw, idx) => (
+                <button
+                  key={idx}
+                  className="keyword-pill"
+                  onClick={() => onKeywordClick && onKeywordClick(kw)}
+                  title={`Search "${kw}" in transcript`}
+                >
+                  #{kw}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
