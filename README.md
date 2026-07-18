@@ -1,7 +1,5 @@
 <div align="center">
 
-![TranscriptAI Banner](assets/banner.png)
-
 # 🎬 TranscriptAI
 
 ### YouTube Transcript Summarizer & AI Q&A Companion
